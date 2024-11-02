@@ -4,7 +4,7 @@
 \alias{call_cached}
 \title{call_cached}
 \usage{
-call_cached(fun, cache_string = Sys.Date())
+call_cached(fun, cache_string = Sys.Date(), cache = memory_cache)
 }
 \arguments{
 \item{fun}{The function to memoise}

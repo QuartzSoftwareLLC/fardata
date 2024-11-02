@@ -15,17 +15,20 @@ get_data_path <- function() {
   path
 }
 
-cache <- memoise::cache_filesystem("/tmp/far-data")
+file_cache <- memoise::cache_filesystem("/tmp/far-data")
+memory_cache <- memoise::cache_memory()
 
 #' call_cached
 #' @description Call a code block with memoisation
 #' @param fun The function to memoise
 #' @param cache_string The string to use as the cache key
 #' @export
-call_cached <- function(fun, cache_string = Sys.Date()) {
+call_cached <- function(fun, cache_string = Sys.Date(), cache = memory_cache) {
   quosured <- rlang::enquo(fun)
+
   hash <- digest::digest(quosured)
   memoised <- memoise::memoise(\(...) rlang::eval_tidy(quosured), cache = cache)
+
   memoised(cache_string, hash, cache_string)
 }
 
@@ -39,9 +42,10 @@ query_cdc_data <- function(dataset, query) {
   sprintf("https://data.cdc.gov/resource/%s.csv?$query=%s", dataset, query |> URLencode()) |>
     read_csv() |>
     tibble() |> 
-    call_cached()
+    call_cached(cache = memory_cache)
 }
 
+query_cdc_data("53g5-jf7x", "SELECT end_date, demographic_type, demographic_values, pathogen, deaths, total_deaths WHERE state = 'United States' and demographic_type in ('Age Group', 'Sex') and not pathogen = 'Combined' LIMIT 15600000")  
 
 #' write_artifact
 #' @export
