@@ -4,11 +4,19 @@
 \alias{read_artifact}
 \title{read_artifact}
 \usage{
-read_artifact(data)
+read_artifact(
+  data,
+  extension = get_tabular_data_extension(),
+  data_path = get_data_path()
+)
 }
 \arguments{
 \item{name}{The name of the artifact}
 }
 \description{
 read_artifact
+}
+\examples{
+read_artifact(iris)
+read_artifact("iris")
 }

@@ -48,6 +48,9 @@ write_artifact <- function(data, data_name = deparse(substitute(data)), data_pat
 #' @param name The name of the artifact
 #' @importFrom readr read_csv
 #' @importFrom stringr str_glue str_remove
+#' @examples
+#' read_artifact(iris)
+#' read_artifact("iris")
 read_artifact <- function(data, extension = get_tabular_data_extension(), data_path = get_data_path()) {
   name <- deparse(substitute(data)) |>
     str_remove("^\"") |>
