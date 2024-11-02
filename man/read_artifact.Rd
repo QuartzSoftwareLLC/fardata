@@ -5,7 +5,7 @@
 \title{read_artifact}
 \usage{
 read_artifact(
-  data,
+  name,
   extension = get_tabular_data_extension(),
   data_path = get_data_path()
 )

@@ -14,7 +14,9 @@ Imports:
     readr,
     tibble,
     purrr,
-    stringr
+    stringr,
+    rlang,
+    digest
 Suggests: 
     arrow,
     testthat (>= 3.0.0)

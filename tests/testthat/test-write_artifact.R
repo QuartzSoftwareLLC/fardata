@@ -5,7 +5,7 @@ test_that("write_artifact works with iris dataset", {
 
   iris <- datasets::iris
   write_artifact(iris)
-  result <- read_artifact(iris)
+  result <- read_artifact("iris")
 
   expect_equal(result, tibble(iris))
 })

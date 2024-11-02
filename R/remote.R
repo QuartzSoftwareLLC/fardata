@@ -15,6 +15,19 @@ get_data_path <- function() {
   path
 }
 
+cache <- memoise::cache_filesystem("/tmp/far-data")
+
+#' call_cached
+#' @description Call a code block with memoisation
+#' @param fun The function to memoise
+#' @param cache_string The string to use as the cache key
+#' @export
+call_cached <- function(fun, cache_string = Sys.Date()) {
+  quosured <- rlang::enquo(fun)
+  hash <- digest::digest(quosured)
+  memoised <- memoise::memoise(\(...) rlang::eval_tidy(quosured), cache = cache)
+  memoised(cache_string, hash, cache_string)
+}
 
 #' query_cdc_data
 #' @export
@@ -23,8 +36,10 @@ get_data_path <- function() {
 #' @importFrom readr read_csv
 #' @importFrom tibble tibble
 query_cdc_data <- function(dataset, query) {
-  url <- sprintf("https://data.cdc.gov/resource/%s.csv?$query=%s", dataset, query |> URLencode())
-  read_csv(url) |> tibble()
+  sprintf("https://data.cdc.gov/resource/%s.csv?$query=%s", dataset, query |> URLencode()) |>
+    read_csv() |>
+    tibble() |> 
+    call_cached()
 }
 
 
@@ -51,10 +66,7 @@ write_artifact <- function(data, data_name = deparse(substitute(data)), data_pat
 #' @examples
 #' read_artifact(iris)
 #' read_artifact("iris")
-read_artifact <- function(data, extension = get_tabular_data_extension(), data_path = get_data_path()) {
-  name <- deparse(substitute(data)) |>
-    str_remove("^\"") |>
-    str_remove("\"$")
+read_artifact <- function(name, extension = get_tabular_data_extension(), data_path = get_data_path()) {
   if (extension == "csv") {
     read_csv(str_glue("{data_path}/{name}.csv"))
   } else if (extension == "parquet") {
