@@ -41,11 +41,9 @@ call_cached <- function(fun, cache_string = Sys.Date(), cache = memory_cache) {
 query_cdc_data <- function(dataset, query) {
   sprintf("https://data.cdc.gov/resource/%s.csv?$query=%s", dataset, query |> URLencode()) |>
     read_csv() |>
-    tibble() |> 
+    tibble() |>
     call_cached(cache = memory_cache)
 }
-
-query_cdc_data("53g5-jf7x", "SELECT end_date, demographic_type, demographic_values, pathogen, deaths, total_deaths WHERE state = 'United States' and demographic_type in ('Age Group', 'Sex') and not pathogen = 'Combined' LIMIT 15600000")  
 
 #' write_artifact
 #' @export
@@ -70,12 +68,18 @@ write_artifact <- function(data, data_name = deparse(substitute(data)), data_pat
 #' @examples
 #' read_artifact(iris)
 #' read_artifact("iris")
-read_artifact <- function(name, extension = get_tabular_data_extension(), data_path = get_data_path()) {
+read_artifact <- function(name, extension = get_tabular_data_extension(), data_path = get_data_path(), env = globalenv()) {
   if (extension == "csv") {
-    read_csv(str_glue("{data_path}/{name}.csv"))
+    read_csv(str_glue("{data_path}/{name}.csv")) |>
+      call_cached(cache_string = name) |>
+      assign(name, value = _,  envir = env)
   } else if (extension == "parquet") {
-    arrow::read_parquet(str_glue("{data_path}/{name}.parquet"))
+    arrow::read_parquet(str_glue("{data_path}/{name}.parquet")) |>
+      call_cached(cache_string = name) |>
+      assign(name, value = _, envir = env)
   } else {
     stop("Unsupported extension")
   }
+
+  get(name, env = env)
 }
