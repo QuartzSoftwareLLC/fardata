@@ -16,7 +16,8 @@ Imports:
     purrr,
     stringr,
     rlang,
-    digest
+    digest,
+    here
 Suggests: 
     arrow,
     testthat (>= 3.0.0)
