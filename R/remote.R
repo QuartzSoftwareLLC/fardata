@@ -50,6 +50,7 @@ query_cdc_data <- function(dataset, query) {
 #' @param name The name of the artifact
 #' @importFrom readr write_csv
 #' @importFrom stringr str_glue
+#' @import aws.s3
 write_artifact <- function(data, data_name = deparse(substitute(data)), data_path = get_data_path(), extension = get_tabular_data_extension()) {
   file_name <- str_glue("{data_name}.{extension}")
   path <- str_glue("{data_path}/{file_name}")

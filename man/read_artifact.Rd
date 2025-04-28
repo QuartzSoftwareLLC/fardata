@@ -7,7 +7,8 @@
 read_artifact(
   name,
   extension = get_tabular_data_extension(),
-  data_path = get_data_path()
+  data_path = get_data_path(),
+  env = globalenv()
 )
 }
 \arguments{
