@@ -4,13 +4,13 @@ getConfig <- function(key, default = NULL) {
 
 #' @export
 get_tabular_data_extension <- function() {
-  getConfig("tabular_data_extension", "parquet")
+  getConfig("tabular_data_extension", "csv")
 }
 
 #' @import here
 #' @export
 get_data_path <- function() {
-  path <- here::here(getConfig("data_path", "data"))
+  path <- getConfig("data_path", "data")
   dir.create(path, showWarnings = FALSE, recursive = TRUE)
   path
 }
@@ -51,12 +51,20 @@ query_cdc_data <- function(dataset, query) {
 #' @importFrom readr write_csv
 #' @importFrom stringr str_glue
 write_artifact <- function(data, data_name = deparse(substitute(data)), data_path = get_data_path(), extension = get_tabular_data_extension()) {
+  file_name <- str_glue("{data_name}.{extension}")
+  path <- str_glue("{data_path}/{file_name}")
+  
   if (extension == "csv") {
-    write_csv(data, str_glue("{data_path}/{data_name}.csv"))
+    write_csv(data, path)
   } else if (extension == "parquet") {
-    arrow::write_parquet(data, str_glue("{data_path}/{data_name}.parquet"))
+    arrow::write_parquet(data, path)
   } else {
     stop("Unsupported extension")
+  }
+
+  if(!is.null(getConfig("bucket"))) {
+      aws.s3::put_object(file = path, object = path , bucket = getConfig("bucket"))
+
   }
 }
 
@@ -69,6 +77,13 @@ write_artifact <- function(data, data_name = deparse(substitute(data)), data_pat
 #' read_artifact(iris)
 #' read_artifact("iris")
 read_artifact <- function(name, extension = get_tabular_data_extension(), data_path = get_data_path(), env = globalenv()) {
+  file_name <- str_glue("{name}.{extension}")
+  path <- str_glue("{data_path}/{file_name}")
+
+  if(!is.null(getConfig("bucket"))) {
+    aws.s3::save_object(object = path, bucket = getConfig("bucket"), file = path)
+  }
+
   if (extension == "csv") {
     read_csv(str_glue("{data_path}/{name}.csv")) |>
       call_cached(cache_string = name) |>
